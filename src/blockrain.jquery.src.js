@@ -52,6 +52,8 @@
       this.showGameOverMessage();
       this._board.gameover = true;
       this.options.onGameOver.call(this.element, this._filled.score);
+      $(backgroundMusic)[0].pause(); // xxx
+      $(backgroundMusic)[0].currentTime = 0; //xxx
     },
 
     _doStart: function() {
@@ -67,6 +69,10 @@
       this._$start.fadeOut(150);
       this._$gameover.fadeOut(150);
       this._$score.fadeIn(150);
+      window.backgroundMusic = new Audio("/assets/audio/backgroundMusic.mp3"); // xxx background music for the game.
+      $(backgroundMusic)[0].volume = 0.05; // xxx
+      $(backgroundMusic)[0].play(); // xxx
+      $(backgroundMusic)[0].loop = true; // xxx sets the music to an infinite loop
     },
 
 
@@ -127,7 +133,6 @@
 
       this._PIXEL_WIDTH = this.element.innerWidth();
       this._PIXEL_HEIGHT = this.element.innerHeight();
-
       this._BLOCK_WIDTH = this.options.blockWidth;
       this._BLOCK_HEIGHT = Math.floor(this.element.innerHeight() / this.element.innerWidth() * this._BLOCK_WIDTH);
 
@@ -216,7 +221,7 @@
       this.updateSizes();
 
       $(window).resize(function(){
-        //game.updateSizes();
+        // game.updateSizes();
       });
 
       this._SetupShapeFactory();
@@ -268,13 +273,13 @@
     /**
      * Draws the background
      */
-    _drawBackground: function() {
+    _drawBackground: function() { 
 
-      if( typeof this._theme.background !== 'string' ) {
+      if( typeof this._theme.background !== 'string' ) { 
         return;
       }
 
-      if( this._theme.backgroundGrid instanceof Image ) {
+      if( this._theme.backgroundGrid instanceof Image ) { 
 
         // Not loaded
         if( this._theme.backgroundGrid.width === 0 || this._theme.backgroundGrid.height === 0 ){ return; }
@@ -288,7 +293,7 @@
 
             this._ctx.drawImage(  this._theme.backgroundGrid, 
                                   0, 0, this._theme.backgroundGrid.width, this._theme.backgroundGrid.height, 
-                                  cx, cy, this._block_size, this._block_size);
+                                  cx, cy, this._block_size, this._block_size); 
           }
         }
 
@@ -517,7 +522,7 @@
                 index = 0;
 
             for (; i<this.blocksLen; i += 2) {
-              game._board.drawBlock(x + blocks[i], y + blocks[i+1], this.blockType, this.blockVariation, index, this.orientation, true);
+              game._board.drawBlock(x + blocks[i], y + blocks[i+1], blockType, this.blockVariation, index, this.orientation); // arpan
               index++;
             }
           },
@@ -587,9 +592,10 @@
               blockType: blockType, 
               blockVariation: blockVariation, 
               blockIndex: blockIndex, 
-              blockOrientation: blockOrientation
+              blockOrientation: blockOrientation,
+              // xvalue: false //xxx
             };
-          }
+          } 
         },
         getFreeSpaces: function() {
           var count = 0;
@@ -610,10 +616,23 @@
           delete this.data;
           this.data = new Array(game._BLOCK_WIDTH * game._BLOCK_HEIGHT);
         },
-        _popRow: function(row_to_pop) {
-          for (var i=game._BLOCK_WIDTH*(row_to_pop+1) - 1; i>=0; i--) {
-            this.data[i] = (i >= game._BLOCK_WIDTH ? this.data[i-game._BLOCK_WIDTH] : undefined);
+        _popRow: function(row_to_pop) { console.log(JSON.stringify(this.data));
+          const crash = new Audio("/assets/audio/tetrisBoom.mp3"); // xxx sound effect for the completion of a line.
+          $(crash)[0].volume = 0.2; // xxx
+          $(crash)[0].play(); // xxx
+
+          for (let i= game._BLOCK_WIDTH*(row_to_pop+1) - 1, counter = 0 ; i >= 0; i--,counter++) { //xxx changed var to let, introduced counter
+            if(this.data[i] != undefined && counter<10){ // xxx counter variable in the above loop is also my addition.
+              this.data[i]['blockVariation'] = 'x'; // xxx  marking out the line that has been completed for audio visual blast effect.
+            } 
           }
+          setTimeout(() => {
+            for(let i= game._BLOCK_WIDTH*(row_to_pop+1) - 1; i >= 0; i--){
+              this.data[i] = (i >= game._BLOCK_WIDTH ? this.data[i-game._BLOCK_WIDTH] : undefined);
+            }
+            
+          }, 1000);
+           
         },
         checkForClears: function() {
           var startLines = game._board.lines;
@@ -638,7 +657,7 @@
             }
           }
 
-          var clearedLines = game._board.lines - startLines;
+          var clearedLines = game._board.lines - startLines; 
           this._updateScore(clearedLines);
         },
         _updateScore: function(numLines) {
@@ -646,21 +665,25 @@
           var scores = [0,400,1000,3000,12000];
           if( numLines >= scores.length ){ numLines = scores.length-1 }
 
-          this.score += scores[numLines];
+          this.score += scores[numLines]; // xxx
           game._$scoreText.text(this.score);
+          $(".blockrain-line-num").text((Number($(".blockrain-line-num").text())+numLines).toString()); // xxx updates the total number of lines cleared
+          $(".blockrain-last-score-num").text("+"+scores[numLines].toString()); //xxx updates the last increment to the total score. It is preceded by a "+" sign.
 
           game.options.onLine.call(game.element, numLines, scores[numLines], this.score);
         },
         _resetScore: function() {
           this.score = 0;
           game._$scoreText.text(this.score);
+          $(".blockrain-line-num").text("0"); // xxx
+          $(".blockrain-last-score-num").text("0"); // xxx
         },
-        draw: function() {
+        draw: function() { 
           for (var i=0, len=this.data.length, row, color; i<len; i++) {
             if (this.data[i] !== undefined) {
               row = this.asY(i);
-              var block = this.data[i];
-              game._board.drawBlock(this.asX(i), row, block.blockType, block.blockVariation, block.blockIndex, block.blockOrientation);
+              var block = this.data[i]; 
+              game._board.drawBlock(this.asX(i), row, block.blockType, block.blockVariation, block.blockIndex, block.blockOrientation); // sakshi
             }
           }
         }
@@ -798,7 +821,7 @@
               moved = false,
               gameOver = false,
               now = Date.now();
-
+          
           if( this.animateTimeoutId ){ clearTimeout(this.animateTimeoutId); }
 
           //game.updateSizes();
@@ -943,24 +966,21 @@
          * The blockType is used to draw any block. 
          * The falling attribute is needed to apply different styles for falling and placed blocks.
          */
-        drawBlock: function(x, y, blockType, blockVariation, blockIndex, blockRotation, falling) {
-
-          // convert x and y to pixel
+        drawBlock: function(x, y, blockType, blockVariation, blockIndex, blockRotation, falling) { // testd
+          var vibrate = 0; // xxx redundant variable. Was made for attempting to make a line vibrate before it disappears
           x = x * game._block_size;
           y = y * game._block_size;
-
           falling = typeof falling === 'boolean' ? falling : false;
           var borderWidth = game._theme.strokeWidth;
           var borderDistance = Math.round(game._block_size*0.23);
           var squareDistance = Math.round(game._block_size*0.30);
 
           var color = this.getBlockColor(blockType, blockVariation, blockIndex, falling);
-
           // Draw the main square
           game._ctx.globalAlpha = 1.0;
 
           // If it's an image, the block has a specific texture. Use that.
-          if( color instanceof Image ) {
+          if( color instanceof Image ) { 
             game._ctx.globalAlpha = 1.0;
 
             // Not loaded
@@ -968,7 +988,10 @@
 
             // A square is the same style for all blocks
             if( typeof game._theme.blocks !== 'undefined' && game._theme.blocks !== null ) {
-              game._ctx.drawImage(color, 0, 0, color.width, color.height, x, y, game._block_size, game._block_size);
+              // game._ctx.drawImage(color, 0, 0, color.width, color.height, x, y, game._block_size, game._block_size);
+              setTimeout(() => {console.log('x is: ',x);
+                game._ctx.drawImage(color, 0, 0, color.width, color.height, x, y, game._block_size, game._block_size);
+              }, 100);
             }
             // A custom texture
             else if( typeof game._theme.complexBlocks !== 'undefined' && game._theme.complexBlocks !== null ) {
@@ -1011,14 +1034,24 @@
 
             } else {
               // ERROR
-              game._ctx.fillStyle = '#ff0000';
+              game._ctx.fillStyle = '#ff0000'; // red
+
               game._ctx.fillRect(x, y, game._block_size, game._block_size);
             }
           }
           else if( typeof color === 'string' )
-          {
+          { 
             game._ctx.fillStyle = color;
-            game._ctx.fillRect(x, y, game._block_size, game._block_size);
+        
+            // if(blockVariation==='x'){ 
+            //   if(vibrate===0){console.log("check1");
+            //     vibrate+=6;
+            //   }
+            //   else{console.log("check2");
+            //     vibrate=0;
+            //   }
+            // }
+            game._ctx.fillRect(x+vibrate, y, game._block_size, game._block_size); // target
 
             // Inner Shadow
             if( typeof game._theme.innerShadow === 'string' ) {
@@ -1031,7 +1064,7 @@
             }
 
             // Decoration (borders)
-            if( typeof game._theme.stroke === 'string' ) {
+            if( typeof game._theme.stroke === 'string' ) { 
               game._ctx.globalAlpha = 1.0;
               game._ctx.fillStyle = game._theme.stroke;
               game._ctx.strokeStyle = game._theme.stroke;
@@ -1084,6 +1117,7 @@
             }
           }
 
+
           if( typeof falling !== 'boolean' ){ falling = true; }
           if( falling ) {
             if( typeof game._theme.primary === 'string' && game._theme.primary !== '' ) {
@@ -1097,8 +1131,14 @@
             if( typeof game._theme.secondary === 'string' && game._theme.secondary !== '' ) {
               return game._theme.secondary;
             } else if( typeof game._theme.blocks !== 'undefined' && game._theme.blocks !== null ) {
-              return getBlockVariation(game._theme.blocks[blockType], blockVariation);
-            } else {
+                    if(blockVariation==='x'){ // xxx This loads the image of a blast to blocks belonging to a completed line.
+                        let myImg = new Image();
+                        myImg.src = "/assets/images/blast.png";
+                        return myImg;
+                      }             
+            
+                      return getBlockVariation(game._theme.blocks[blockType], blockVariation);
+                } else {
               return getBlockVariation(game._theme.complexBlocks[blockType], blockVariation);
             }
           }
@@ -1148,12 +1188,12 @@
 
       var startAssetLoad = function(block) {
         // Assets can be an array of variation so they can change color/design randomly
-        if( $.isArray(block) && block.length > 0 ) {
+        if( $.isArray(block) && block.length > 0 ) { 
           for( var i=0; i<block.length; i++ ) {
             block[i] = loadAsset(block[i]);
           }
         }
-        else if( typeof block === 'string' ) {
+        else if( typeof block === 'string' ) { 
           block = loadAsset(block);
         }
         return block;
@@ -1164,7 +1204,7 @@
         var keys = Object.keys(this._theme.complexBlocks);
 
         // Load the complexBlocks
-        for( var i = 0; i < keys.length; i++ ) {
+        for( var i = 0; i < keys.length; i++ ) { 
           this._theme.complexBlocks[ keys[i] ] = startAssetLoad( this._theme.complexBlocks[ keys[i] ] );
         }
       }
@@ -1172,7 +1212,7 @@
         var keys = Object.keys(this._theme.blocks);
 
         // Load the blocks
-        for( var i = 0; i < keys.length; i++ ) {
+        for( var i = 0; i < keys.length; i++ ) { 
           this._theme.blocks[ keys[i] ] = startAssetLoad( this._theme.blocks[ keys[i] ] );
         }
       }
@@ -1187,7 +1227,7 @@
             this._theme.backgroundGrid.onload = handleAssetLoad;
           }
         }
-      }
+      }         
 
     },
 
@@ -1195,7 +1235,7 @@
     _createHolder: function() {
 
       // Create the main holder (it holds all the ui elements, the original element is just the wrapper)
-      this._$gameholder = $('<div class="blockrain-game-holder"></div>');
+      this._$gameholder = $('<div class="blockrain-game-holder"></div>'); // here
       this._$gameholder.css('position', 'relative').css('width', '100%').css('height', '100%');
 
       this.element.html('').append(this._$gameholder);
@@ -1219,14 +1259,17 @@
 
       // Score
       game._$score = $(
-        '<div class="blockrain-score-holder" style="position:absolute;">'+
+        '<div class="blockrain-score-holder" style="position:absolute; display:block;">'+
           '<div class="blockrain-score">'+
+          '<div class="blockrain-line-msg">'+ 'Lines' +'</div>'+ //xxx
+          '<div class="blockrain-line-num">0</div>'+           //xxx keeps track of the total number of lines completed
             '<div class="blockrain-score-msg">'+ this.options.scoreText +'</div>'+
-            '<div class="blockrain-score-num">0</div>'+
+            '<div class="blockrain-score-num">0</div>'+ 
+            '<div class="blockrain-last-score-num">0</div>'+ // xxx keeps track of the score last score increment
           '</div>'+
-        '</div>').hide();
+        '</div>')
       game._$scoreText = game._$score.find('.blockrain-score-num');
-      game._$gameholder.append(game._$score);
+      this.element.append(this._$score); 
 
       // Create the start menu
       game._$start = $(
@@ -1241,6 +1284,7 @@
       game._$start.find('.blockrain-start-btn').click(function(event){
         event.preventDefault();
         game.start();
+        // $("#btn1").show();
       });
 
       // Create the game over menu
@@ -1616,3 +1660,5 @@
   });
 
 })(jQuery));
+
+
