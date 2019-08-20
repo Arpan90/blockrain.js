@@ -988,8 +988,7 @@
 
             // A square is the same style for all blocks
             if( typeof game._theme.blocks !== 'undefined' && game._theme.blocks !== null ) {
-              // game._ctx.drawImage(color, 0, 0, color.width, color.height, x, y, game._block_size, game._block_size);
-              setTimeout(() => {console.log('x is: ',x);
+              setTimeout(() => { // creates a blinking effect
                 game._ctx.drawImage(color, 0, 0, color.width, color.height, x, y, game._block_size, game._block_size);
               }, 100);
             }
