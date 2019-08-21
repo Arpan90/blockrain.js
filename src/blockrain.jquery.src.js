@@ -69,7 +69,7 @@
       this._$start.fadeOut(150);
       this._$gameover.fadeOut(150);
       this._$score.fadeIn(150);
-      window.backgroundMusic = new Audio("/assets/audio/backgroundMusic.mp3"); // xxx background music for the game.
+      window.backgroundMusic = new Audio("assets/audio/backgroundMusic.mp3"); // xxx background music for the game.
       $(backgroundMusic)[0].volume = 0.05; // xxx
       $(backgroundMusic)[0].play(); // xxx
       $(backgroundMusic)[0].loop = true; // xxx sets the music to an infinite loop
@@ -617,7 +617,7 @@
           this.data = new Array(game._BLOCK_WIDTH * game._BLOCK_HEIGHT);
         },
         _popRow: function(row_to_pop) { console.log(JSON.stringify(this.data));
-          const crash = new Audio("/assets/audio/tetrisBoom.mp3"); // xxx sound effect for the completion of a line.
+          const crash = new Audio("assets/audio/tetrisBoom.mp3"); // xxx sound effect for the completion of a line.
           $(crash)[0].volume = 0.2; // xxx
           $(crash)[0].play(); // xxx
 
@@ -1132,7 +1132,7 @@
             } else if( typeof game._theme.blocks !== 'undefined' && game._theme.blocks !== null ) {
                     if(blockVariation==='x'){ // xxx This loads the image of a blast to blocks belonging to a completed line.
                         let myImg = new Image();
-                        myImg.src = "/assets/images/blast.png";
+                        myImg.src = "assets/images/blast.png";
                         return myImg;
                       }             
             
@@ -1659,5 +1659,3 @@
   });
 
 })(jQuery));
-
-
